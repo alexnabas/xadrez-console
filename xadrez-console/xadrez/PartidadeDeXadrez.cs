@@ -28,7 +28,7 @@ namespace xadrez
             Peca p = tab.retirarPeca(origem);
             p.incrementarQteMovimentos();
             Peca pecaCapturada = tab.retirarPeca(destino);
-            tab.colocarPeca(p,destino);
+            tab.colocarPeca(p,destino,jogadorAtual);
 
             if(pecaCapturada != null)
             {
@@ -43,10 +43,10 @@ namespace xadrez
             p.decrementarQteMovimentos();
             if(pecaCapturada != null)
             {
-                tab.colocarPeca(pecaCapturada, destino);
+                tab.colocarPeca(pecaCapturada, destino,jogadorAtual);
                 capturadas.Remove(pecaCapturada);
             }
-            tab.colocarPeca(p,origem);
+            tab.colocarPeca(p,origem,jogadorAtual);
         }
 
         public void realizaJogada(Posicao origem, Posicao destino)
@@ -67,8 +67,16 @@ namespace xadrez
             {
                 xeque = false;
             }
-            turno++;
-            mudaJogador();
+
+            if (testeXequemate(adversaria(jogadorAtual)))
+            {
+                terminada = true;
+            }
+            else
+            {
+                turno++;
+                mudaJogador();
+            }
         }
 
         public HashSet<Peca> pecasCapturadas(Cor cor)
@@ -141,6 +149,40 @@ namespace xadrez
             }
             return false;
         }
+
+        public bool testeXequemate(Cor cor)
+        {
+            if (!estaEmXeque(cor))
+            {
+                return false;
+            }
+
+            foreach(Peca x in pecasEmJogo(cor))
+            {
+                bool[,] m = x.movimentosPossiveis();
+                for(int i = 0; i<tab.linhas; i++)
+                {
+                    for(int j = 0; j<tab.colunas; j++)
+                    {
+                        if (m[i, j])
+                        {
+                            Posicao origem = x.posicao;
+                            Posicao destino = new Posicao(i,j);
+                            Peca pecaCapturada = executaMovimento(origem, destino);
+                            bool testeXeque = estaEmXeque(cor);
+                            desfazMovimento(origem, destino, pecaCapturada);
+                            if (!testeXeque)
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+        
+
         public void validarPosicaoDeOrigem(Posicao pos)
         {
             if(tab.peca(pos) == null)
@@ -178,7 +220,7 @@ namespace xadrez
 
         public void colocarNovaPeca(char coluna, int linha, Peca peca)
         {
-            tab.colocarPeca(peca, new PosicaoXadrez(coluna, linha).toPosicao());
+            tab.colocarPeca(peca, new PosicaoXadrez(coluna, linha).toPosicao(),jogadorAtual);
             this.pecas.Add(peca);
         }
 

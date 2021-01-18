@@ -23,9 +23,9 @@
             return pecas[pos.linha, pos.coluna];
         }
 
-        public void colocarPeca(Peca p, Posicao pos)
+        public void colocarPeca(Peca p, Posicao pos, Cor jogadorAtual)
         {
-            if (existePeca(pos))
+            if (existePeca(pos) && p.cor == jogadorAtual)
             {
                 throw new TabuleiroException("Já existe uma peça na posição (" + pos.linha + "," + pos.coluna + ")");
             }
